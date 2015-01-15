@@ -170,17 +170,24 @@ class PHOENIXGridInterface(RawGridInterface):
     :type norm: bool
 
     '''
-    def __init__(self, air=True, norm=True, wl_range=[3000, 54000], base="libraries/raw/PHOENIX/"):
+    def __init__(self, air=True, norm=True, wl_range=[3000, 54000], base="libraries/raw/PHOENIX/",
+                 Tvals=None, logg_vals=None, Z_vals=None, alpha_vals=None):
+        if Tvals is None:
+            Tvals = np.array([2300, 2400, 2500, 2600, 2700, 2800, 2900, 3000, 3100, 3200, 3300, 3400, 3500, 3600, 3700,
+                              3800, 3900, 4000, 4100, 4200, 4300, 4400, 4500, 4600, 4700, 4800, 4900, 5000, 5100, 5200,
+                              5300, 5400, 5500, 5600, 5700, 5800, 5900, 6000, 6100, 6200, 6300, 6400, 6500, 6600, 6700,
+                              6800, 6900, 7000, 7200, 7400, 7600, 7800, 8000, 8200, 8400, 8600, 8800, 9000, 9200, 9400,
+                              9600, 9800, 10000, 10200, 10400, 10600, 10800, 11000, 11200, 11400, 11600, 11800, 12000])
+        if logg_vals is None:
+            logg_vals = np.arange(0.0, 6.1, 0.5)
+        if Z_vals is None:
+            Z_vals = np.arange(-2., 1.1, 0.5)
+        if alpha_vals is None:
+            alpha_vals = np.array([-0.2, 0.0, 0.2, 0.4, 0.6, 0.8])
+
         super().__init__(name="PHOENIX",
-        points={"temp":
-      np.array([2300, 2400, 2500, 2600, 2700, 2800, 2900, 3000, 3100, 3200, 3300, 3400, 3500, 3600, 3700, 3800, 3900, 4000, 4100, 4200,
-      4300, 4400, 4500, 4600, 4700, 4800, 4900, 5000, 5100, 5200, 5300, 5400, 5500, 5600, 5700, 5800, 5900, 6000, 6100,
-      6200, 6300, 6400, 6500, 6600, 6700, 6800, 6900, 7000, 7200, 7400, 7600, 7800, 8000, 8200, 8400, 8600, 8800, 9000,
-      9200, 9400, 9600, 9800, 10000, 10200, 10400, 10600, 10800, 11000, 11200, 11400, 11600, 11800, 12000]),
-        "logg":np.arange(0.0, 6.1, 0.5),
-        "Z":np.arange(-2., 1.1, 0.5),
-        "alpha":np.array([-0.2, 0.0, 0.2, 0.4, 0.6, 0.8])},
-        air=air, wl_range=wl_range, base=base) #wl_range used to be [2999, 13001]
+                         points={"temp": Tvals, "logg":logg_vals, "Z":Z_vals, "alpha":alpha_vals},
+                         air=air, wl_range=wl_range, base=base) #wl_range used to be [2999, 13001]
 
         self.norm = norm #Normalize to 1 solar luminosity?
         self.Z_dict = {-2:"-2.0", -1.5:"-1.5", -1:'-1.0', -0.5:'-0.5', 0.0: '-0.0', 0.5: '+0.5', 1: '+1.0'}
