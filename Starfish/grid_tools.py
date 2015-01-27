@@ -15,7 +15,7 @@ from functools import partial
 import itertools
 from collections import OrderedDict
 
-from .spectrum import Base1DSpectrum, LogLambdaSpectrum, create_log_lam_grid, calculate_min_v
+from .spectrum import Base1DSpectrum, create_log_lam_grid, calculate_min_v
 from . import constants as C
 
 def chunk_list(mylist, n=mp.cpu_count()):
@@ -69,14 +69,14 @@ def determine_chunk_log(wl, wl_min, wl_max):
     chunk = len_wl
     inds = (0, chunk)
 
+    # This loop will exit with chunk being the smallest power of 2 that is
+    # larger than npoints
     while chunk > npoints:
         if chunk/2 > npoints:
             chunk = chunk//2
         else:
             break
 
-    #This loop will exit with chunk being the smallest power of 2 that is larger than npoints
-    assert type(chunk) == np.int, "Chunk is no longer integer!. Chunk is {}".format(chunk)
 
     if chunk < len_wl:
         # Now that we have determined the length of the chunk of the synthetic spectrum, determine indices
