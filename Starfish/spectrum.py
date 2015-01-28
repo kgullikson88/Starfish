@@ -18,10 +18,8 @@ flux_units = frozenset(("f_lam", "f_nu"))
 def calculate_dv(wl):
     '''
     Given a wavelength array, calculate the minimum ``dv`` of the array.
-
     :param wl: wavelength array
     :type wl: np.array
-
     :returns: (float) delta-v in units of km/s
     '''
     return C.c_kms * np.min(np.diff(wl)/wl[:-1])
@@ -29,7 +27,6 @@ def calculate_dv(wl):
 def calculate_dv_dict(wl_dict):
     '''
     Given a ``wl_dict``, calculate the velocity spacing.
-
     :param wl_dict: wavelength dictionary
     :type wl_dict: dict
     '''
@@ -41,7 +38,6 @@ def create_log_lam_grid(dv=1., wl_start=3000., wl_end=13000., min_vc=None):
     '''
     Create a log lambda spaced grid with ``N_points`` equal to a power of 2 for
     ease of FFT.
-
     :param wl_start: starting wavelength (inclusive)
     :type wl_start: float, AA
     :param wl_end: ending wavelength (inclusive)
@@ -52,11 +48,9 @@ def create_log_lam_grid(dv=1., wl_start=3000., wl_end=13000., min_vc=None):
     :type dv: float
     :param min_vc: tightest spacing. Overrides dv if given!
 -   :type min_vc: float
-
     :returns: a wavelength dictionary containing the specified properties. Note
         that the returned dv will be <= specified dv.
     :rtype: wl_dict
-
     '''
     assert wl_start < wl_end, "wl_start must be smaller than wl_end"
 
@@ -81,7 +75,6 @@ def create_log_lam_grid(dv=1., wl_start=3000., wl_end=13000., min_vc=None):
 class BaseSpectrum:
     '''
     The base spectrum object, designed to be inherited.
-
     :param wl: wavelength array
     :type wl: np.array
     :param fl: flux array, must be the same shape as :attr:`wl`
@@ -106,10 +99,8 @@ class BaseSpectrum:
     def convert_units(self, unit="f_nu"):
         '''
         Convert between f_lam and f_nu. If :attr:`unit` == :attr:`self.unit`, do nothing.
-
         :param unit: flux unit to convert to
         :type unit: string
-
         :raises AssertionError: if unit is not ``"f_lam"`` or ``"f_nu"``.
         '''
         assert unit in flux_units, "{} must be one of {} flux units".format(unit, flux_units)
@@ -132,7 +123,6 @@ class BaseSpectrum:
     def save(self, name):
         '''
         Save the spectrum as a 2D numpy array. wl = arr[0,:], fl = arr[1,:]
-
         :param name: filename
         '''
         obj = np.array((self.wl, self.fl))
@@ -154,7 +144,6 @@ class BaseSpectrum:
 class Base1DSpectrum(BaseSpectrum):
     '''
     The base one-dimensional spectrum object, designed to be initialized with a generic spectrum.
-
     :param wl: wavelength array
     :type wl: np.array
     :param fl: flux array
@@ -164,7 +153,6 @@ class Base1DSpectrum(BaseSpectrum):
     :type air: bool
     :param metadata: any extra metadata associated with the spectrum
     :type metadat: dict
-
     Initialization sorts the wl array to make sure all points are sequential and unique.
     '''
 
@@ -181,7 +169,6 @@ class Base1DSpectrum(BaseSpectrum):
         '''
         Determine the minimum spacing and create a log lambda grid that satisfies the sampling requirements. This assumes
         that the input spectrum has already been properly oversampled.
-
         :returns: wl_dict containing a log lam wl and header keywords.
         '''
         dif = np.diff(self.wl)
@@ -202,7 +189,6 @@ class Base1DSpectrum(BaseSpectrum):
     def resample_to_grid(self, grid, integrate=False):
         '''
         Resample the spectrum to a new grid. Update :attr:`wl` and :attr:`fl`.
-
         :param grid: the new wavelength grid to resample/rebin to
         :type grid: np.array
         :param integrate: rebin instead of resample?
@@ -254,13 +240,9 @@ class Base1DSpectrum(BaseSpectrum):
     def to_LogLambda(self, min_vc, instrument=None):
         '''
         Return a new spectrum that is :obj:`LogLambdaSpectrum`
-
         :param min_vc: The maximum spacing allowed
         :type min_vc: float
         :param instrument: :obj:`Instrument` object to transfer wl_ranges for truncation.
-
-
-
         '''
         if instrument is not None:
             low, high = instrument.wl_range
@@ -294,7 +276,6 @@ class Base1DSpectrum(BaseSpectrum):
 class LogLambdaSpectrum(Base1DSpectrum):
     '''
     A spectrum that has log lambda spaced wavelengths.
-
     :param wl: wavelength array
     :type wl: np.array
     :param fl: flux array
@@ -306,11 +287,8 @@ class LogLambdaSpectrum(Base1DSpectrum):
     :type metadat: dict
     :param oversampling: how many samples fit across the :attr:`FWHM`
     :type oversampling: float
-
     All of the class methods modify :attr:`wl` and :attr:`fl` in place.
-
     .. note::
-
         Because of the difficulty of keeping track of convolution, you only get to do
         {:meth:`instrument_convolve`, :meth:`stellar_convolve`} or
         :meth:`instrument_and_stellar_convolve` once.
@@ -351,14 +329,11 @@ class LogLambdaSpectrum(Base1DSpectrum):
         Updates the :attr:`wl`, :attr:`fl`, and log_lam_kws in the :attr:`metadata`. This method is slightly
         different than :meth:`Base1DSpectrum.resample_to_grid` since it uses :attr:`wl_dict` to ensure that the spectrum
         remains log lambda spaced and ``N_points`` is a power of 2.
-
         :param wl_dict: dictionary of log lam wavelength properties to resample to
         :type wl_dict: dict
         :param integrate: integrate flux to counts/pixel?
         :type integrate: bool
-
         .. note::
-
             Assumes that new wl grid does not violate any sampling rules and updates header values.
         '''
 
@@ -373,7 +348,6 @@ class LogLambdaSpectrum(Base1DSpectrum):
     def convolve_with_gaussian(self, FWHM):
         '''
         Convolve the spectrum with a Gaussian of FWHM
-
         :param FWHM: the FWHM of the Gaussian kernel
         :type FWHM: float (km/s)
         '''
@@ -407,10 +381,8 @@ class LogLambdaSpectrum(Base1DSpectrum):
     def instrument_convolve(self, instrument, integrate=False):
         '''
         Convolve the spectrum with an instrumental profile.
-
         :param instrument: the :obj:`grid_tools.Instrument` object containing the instrumental profile
         :param integrate: integrate to counts/pixel? :attr:`downsample` must not be None
-
         '''
         assert "instcon" not in self.metadata.keys(), "Spectrum has already been instrument convolved"
         self.convolve_with_gaussian(instrument.FWHM)
@@ -428,10 +400,8 @@ class LogLambdaSpectrum(Base1DSpectrum):
     def stellar_convolve(self, vsini):
         '''
         Broaden spectrum due to stellar rotation.
-
         :param vsini: projected rotational speed of star
         :type vsini: float (km/s)
-
         '''
         assert "vsini" not in self.metadata.keys(), "Spectrum has already been rotationally convolved"
         if vsini > 0:
@@ -474,12 +444,10 @@ class LogLambdaSpectrum(Base1DSpectrum):
     def instrument_and_stellar_convolve(self, instrument, vsini, integrate=False):
         '''
         Perform both instrumental and stellar broadening on the spectrum.
-
         :param instrument: the :obj:`grid_tools.Instrument` object containing the instrumental profile
         :param vsini: projected rotational speed of star
         :type vsini: float (km/s)
         :param integrate: integrate to counts/pixel? :attr:`downsample` must not be None
-
         '''
         assert "instcon" not in self.metadata.keys(), "Spectrum has already been instrument convolved"
         assert "vsini" not in self.metadata.keys(), "Spectrum has already been stellar convolved"
@@ -490,14 +458,11 @@ class LogLambdaSpectrum(Base1DSpectrum):
     def write_to_FITS(self, out_unit, filename):
         '''
         Write a LogLambdaSpectrum to a FITS file.
-
         :param out_unit: `f_lam`, `f_nu`, `f_nu_log`, or `counts/pix`
         :type out_unit: string
         :param filename: output filename
         :type filename: string
-
         Depending on the `out_unit`, the spectrum may be converted.
-
         * `f_lam`: keep flux units the same
         * `f_nu`: convert flux to ergs/s/cm^2/Hz
         * `f_nu_log`: convert flux to ergs/s/cm^2/log(Hz)
@@ -580,26 +545,20 @@ def rfftfreq(n, d=1.0):
     """
     Return the Discrete Fourier Transform sample frequencies
     (for usage with rfft, irfft).
-
     The returned float array `f` contains the frequency bin centers in cycles
     per unit of the sample spacing (with zero at the start). For instance, if
     the sample spacing is in seconds, then the frequency unit is cycles/second.
-
     Given a window length `n` and a sample spacing `d`::
-
     f = [0, 1, ..., n/2-1, n/2] / (d*n) if n is even
     f = [0, 1, ..., (n-1)/2-1, (n-1)/2] / (d*n) if n is odd
-
     Unlike `fftfreq` (but like `scipy.fftpack.rfftfreq`)
     the Nyquist frequency component is considered to be positive.
-
     :param n : Window length
     :type n: int
     :param d: Sample spacing (inverse of the sampling rate). Defaults to 1.
     ;type d: scalar, optional
     :returns: f, Array of length ``n//2 + 1`` containing the sample frequencies.
     :rtype: ndarray
-
     """
     if not isinstance(n, np.int):
         raise ValueError("n should be an integer")
@@ -611,7 +570,6 @@ def rfftfreq(n, d=1.0):
 def plot_spectrum(spec, filename, wl_range=None):
     '''
     Plot a spectrum with `matplotlib` and save to a file.
-
     :param spec: spectrum to plot
     :type spec: LogLambdaSpectrum or Base1DSpectrum
     :param filename: path to save plot
@@ -632,7 +590,6 @@ def plot_spectrum(spec, filename, wl_range=None):
 class DataSpectrum:
     '''
     Object to manipulate the data spectrum.
-
     :param wls: wavelength (in AA)
     :type wls: 1D or 2D np.array
     :param fls: flux (in f_lam)
@@ -641,14 +598,10 @@ class DataSpectrum:
     :type sigmas: 1D or 2D np.array
     :param masks: Mask to blot out bad pixels or emission regions.
     :type masks: 1D or 2D np.array of boolean values
-
     If the wl, fl, are provided as 1D arrays (say for a single order), they will be converted to 2D arrays with length 1
     in the 0-axis.
-
     .. note::
-
        For now, the DataSpectrum wls, fls, sigmas, and masks must be a rectangular grid. No ragged Echelle orders allowed.
-
     '''
     def __init__(self, wls, fls, sigmas, masks=None, orders='all', name=None):
         self.wls = np.atleast_2d(wls)
@@ -679,13 +632,11 @@ class DataSpectrum:
     def open(cls, file, orders='all'):
         '''
         Load a spectrum from a directory link pointing to HDF5 output from EchelleTools processing.
-
         :param base_file: HDF5 file containing files on disk.
         :type base_file: string
         :returns: DataSpectrum
         :param orders: Which orders should we be fitting?
         :type orders: np.array of indexes
-
         '''
         #Open the HDF5 file, try to load each of these values.
         import h5py
@@ -709,13 +660,11 @@ class DataSpectrum:
     def open_npy(cls, base_file, orders='all'):
         '''
         Load a spectrum from a directory link pointing to .npy output from EchelleTools processing.
-
         :param base_file: base path name to be appended with ".wls.npy", ".fls.npy", ".sigmas.npy", and ".masks.npy" to load files from disk.
         :type base_file: string
         :returns: DataSpectrum
         :param orders: Which orders should we be fitting?
         :type orders: np.array of indexes
-
         '''
         wls = np.load(base_file + ".wls.npy")
         fls = np.load(base_file + ".fls.npy")
@@ -758,13 +707,11 @@ class Mask:
         '''
         Load a Mask from a directory link pointing to HDF5 file output from EchelleTools or Generate_mask.ipynb
         processing.
-
         :param file: HDF5 file containing files on disk.
         :type file: string
         :returns: DataSpectrum
         :param orders: Which orders should we be fitting?
         :type orders: np.array of indexes
-
         '''
         import h5py
         with h5py.File(file, "r") as hdf5:
@@ -775,17 +722,13 @@ class Mask:
 class ModelSpectrum:
     '''
     A 1D synthetic spectrum.
-
     :param interpolator: object to query stellar parameters
     :type interpolator: :obj:`grid_tools.ModelInterpolator`
     :param instrument: Which instrument is this a model for?
     :type instrument: :obj:`grid_tools.Instrument` object describing wavelength range and instrumental profile
-
     We essentially want to preserve two capabilities.
-
     1. Sample in all "stellar parameters" at once
     2. Sample in only the easy "post-processing" parameters, like ff and v_z to speed the burn-in process.
-
     '''
     def __init__(self, Emulator, DataSpectrum, instrument):
         self.Emulator = Emulator
@@ -818,10 +761,8 @@ class ModelSpectrum:
     def update_logOmega(self, logOmega):
         '''
         Update the 'flux factor' parameter, :math:`\Omega = R^2/d^2`, which multiplies the model spectrum to be the same scale as the data.
-
         :param Omega: 'flux factor' parameter, :math:`\Omega = R^2/d^2`
         :type Omega: float
-
         '''
         #factor by which to correct from old Omega
         self.fl *= 10**(logOmega - self.logOmega)
@@ -831,10 +772,8 @@ class ModelSpectrum:
     def update_vz(self, vz):
         '''
         Update the radial velocity parameter.
-
         :param vz: The radial velocity parameter. Positive means redshift and negative means blueshift.
         :type vz: float (km/s)
-
         '''
         #How far to shift based from old vz?
         vz_shift = vz - self.vz
@@ -844,10 +783,8 @@ class ModelSpectrum:
     def update_Av(self, Av):
         '''
         Update the extinction parameter.
-
         :param Av: The optical extinction parameter.
         :type Av: float (magnitudes)
-
         '''
         pass
 
@@ -861,10 +798,8 @@ class ModelSpectrum:
         '''
         Private method to update just those stellar parameters. Designed to be used as part of update_all.
         ASSUMES that grid is log-linear spaced and already instrument-convolved
-
         :param grid_params: grid parameters, including alpha or not.
         :type grid_params: dict
-
         '''
         try:
             self.fl = self.Emulator.reconstruct(weights)
@@ -880,10 +815,8 @@ class ModelSpectrum:
         Private method to update just the vsini kernel. Designed to be used as part of update_all
         *after* the grid_params have been updated using _update_grid_params_approx.
         ASSUMES that the grid is log-linear spaced and already instrument-convolved
-
         :param vsini: projected stellar rotation velocity
         :type vsini: float (km/s)
-
         '''
         if vsini < 0.2:
             raise C.ModelError("vsini must be positive")
@@ -969,9 +902,7 @@ class ModelSpectrum:
     def update_all(self, params):
         '''
         Update all of the stellar parameters
-
         Give parameters as a dict and choose the params to update.
-
         '''
         #Pull the weights from here
         weights = params["weights"]
@@ -1001,7 +932,6 @@ class ModelSpectrum:
     def downsample(self):
         '''
         Downsample the synthetic spectrum to the same wl pixels as the DataSpectrum.
-
         :returns fls: the downsampled fluxes that has the same shape as DataSpectrum.fls
         '''
 
@@ -1059,17 +989,13 @@ class ModelSpectrum:
 class ModelSpectrumHA:
     '''
     A 1D synthetic spectrum.
-
     :param interpolator: object to query stellar parameters
     :type interpolator: :obj:`grid_tools.ModelInterpolator`
     :param instrument: Which instrument is this a model for?
     :type instrument: :obj:`grid_tools.Instrument` object describing wavelength range and instrumental profile
-
     We essentially want to preserve two capabilities.
-
     1. Sample in all "stellar parameters" at once
     2. Sample in only the easy "post-processing" parameters, like ff and v_z to speed the burn-in process.
-
     '''
     def __init__(self, interpolator, instrument):
         self.interpolator = interpolator
@@ -1112,10 +1038,8 @@ class ModelSpectrumHA:
     def update_logOmega(self, logOmega):
         '''
         Update the 'flux factor' parameter, :math:`\Omega = R^2/d^2`, which multiplies the model spectrum to be the same scale as the data.
-
         :param Omega: 'flux factor' parameter, :math:`\Omega = R^2/d^2`
         :type Omega: float
-
         '''
         #factor by which to correct from old Omega
         self.fl *= 10**(logOmega - self.logOmega)
@@ -1124,10 +1048,8 @@ class ModelSpectrumHA:
     def update_vz(self, vz):
         '''
         Update the radial velocity parameter.
-
         :param vz: The radial velocity parameter. Positive means redshift and negative means blueshift.
         :type vz: float (km/s)
-
         '''
         #How far to shift based from old vz?
         vz_shift = vz - self.vz
@@ -1137,10 +1059,8 @@ class ModelSpectrumHA:
     def update_Av(self, Av):
         '''
         Update the extinction parameter.
-
         :param Av: The optical extinction parameter.
         :type Av: float (magnitudes)
-
         '''
         pass
 
@@ -1152,10 +1072,8 @@ class ModelSpectrumHA:
     def _update_grid_params(self, grid_params):
         '''
         Private method to update just those stellar parameters. Designed to be used as part of update_all.
-
         :param grid_params: grid parameters, including alpha or not.
         :type grid_params: dict
-
         '''
         try:
             fl = self.interpolator(grid_params) #Query the interpolator with the new stellar combination
@@ -1173,10 +1091,8 @@ class ModelSpectrumHA:
         '''
         Private method to update just the vsini and instrumental kernel. Designed to be used as part of update_all
         *after* the grid_params have been updated.
-
         :param vsini: projected stellar rotation velocity
         :type vsini: float (km/s)
-
         '''
         if vsini < 0:
             raise C.ModelError("vsini must be positive")
@@ -1218,9 +1134,7 @@ class ModelSpectrumHA:
     def update_all(self, params):
         '''
         Update all of the stellar parameters
-
         Give parameters as a dict and choose the params to update.
-
         '''
         #First set stellar parameters using _update_grid_params
         # grid_params = {'temp':params['temp'], 'logg': 4.29, 'Z':params['Z']}
@@ -1250,7 +1164,6 @@ class ModelSpectrumHA:
     def downsample(self):
         '''
         Downsample the synthetic spectrum to the same wl pixels as the DataSpectrum.
-
         :returns fls: the downsampled fluxes that has the same shape as DataSpectrum.fls
         '''
 
@@ -1271,17 +1184,13 @@ class ModelSpectrumHA:
 class ModelSpectrumLog:
     '''
     A 1D synthetic spectrum drawing from the LogInterpolator
-
     :param interpolator: object to query stellar parameters
     :type interpolator: :obj:`grid_tools.ModelInterpolator`
     :param instrument: Which instrument is this a model for?
     :type instrument: :obj:`grid_tools.Instrument` object describing wavelength range and instrumental profile
-
     We essentially want to preserve two capabilities.
-
     1. Sample in all "stellar parameters" at once
     2. Sample in only the easy "post-processing" parameters, like ff and v_z to speed the burn-in process.
-
     '''
     def __init__(self, interpolator, instrument):
         self.interpolator = interpolator
@@ -1317,10 +1226,8 @@ class ModelSpectrumLog:
     def update_logOmega(self, logOmega):
         '''
         Update the 'flux factor' parameter, :math:`\Omega = R^2/d^2`, which multiplies the model spectrum to be the same scale as the data.
-
         :param Omega: 'flux factor' parameter, :math:`\Omega = R^2/d^2`
         :type Omega: float
-
         '''
         #factor by which to correct from old Omega
         self.fl *= 10**(logOmega - self.logOmega)
@@ -1329,10 +1236,8 @@ class ModelSpectrumLog:
     def update_vz(self, vz):
         '''
         Update the radial velocity parameter.
-
         :param vz: The radial velocity parameter. Positive means redshift and negative means blueshift.
         :type vz: float (km/s)
-
         '''
         #How far to shift based from old vz?
         vz_shift = vz - self.vz
@@ -1342,10 +1247,8 @@ class ModelSpectrumLog:
     def update_Av(self, Av):
         '''
         Update the extinction parameter.
-
         :param Av: The optical extinction parameter.
         :type Av: float (magnitudes)
-
         '''
         pass
 
@@ -1357,10 +1260,8 @@ class ModelSpectrumLog:
     def _update_grid_params(self, grid_params):
         '''
         Private method to update just those stellar parameters. Designed to be used as part of update_all.
-
         :param grid_params: grid parameters, including alpha or not.
         :type grid_params: dict
-
         '''
         try:
             self.fl = self.interpolator(grid_params) #Query the interpolator with the new stellar combination
@@ -1373,10 +1274,8 @@ class ModelSpectrumLog:
         '''
         Private method to update just the vsini and instrumental kernel. Designed to be used as part of update_all
         *after* the grid_params have been updated.
-
         :param vsini: projected stellar rotation velocity
         :type vsini: float (km/s)
-
         '''
         if vsini < 0:
             raise C.ModelError("vsini must be positive")
@@ -1413,9 +1312,7 @@ class ModelSpectrumLog:
     def update_all(self, params):
         '''
         Update all of the stellar parameters
-
         Give parameters as a dict and choose the params to update.
-
         '''
         #First set stellar parameters using _update_grid_params
 
@@ -1448,7 +1345,6 @@ class ModelSpectrumLog:
     def downsample(self):
         '''
         Downsample the synthetic spectrum to the same wl pixels as the DataSpectrum.
-
         :returns fls: the downsampled fluxes that has the same shape as DataSpectrum.fls
         '''
 
@@ -1469,10 +1365,8 @@ class ModelSpectrumLog:
 class ChebyshevSpectrum:
     '''
     A DataSpectrum-like object which multiplies downsampled fls to account for imperfect flux calibration issues.
-
     :param DataSpectrum: take shape from.
     :type DataSpectrum: :obj:`DataSpectrum` object
-
     If DataSpectrum.norders == 1, then only c1, c2, and c3 are required. Otherwise c0 is also reqired for each order.
     '''
 
@@ -1556,43 +1450,26 @@ class ChebyshevSpectrum:
 class DataCovarianceMatrix:
     '''
     Non-trivial covariance matrices (one for each order) for correlated noise.
-
     Let's try doing everything dense.
-
     And, let's try doing everything all at once. Step in the Global Cov parameters and the Regions.
-
     How to efficiently fill the matrix?
     1. Define a k_func, based off of update
     2. Pass this to some optimized cython routine which only loops over the appropriate indices, evaluating k_func
     (this is get_dense_C.
-
     Then we will just have two methods
-
     CovarianceMatrix.update(params) #updates global and all regions
     CovarianceMatrix.evaluate() uses existing matrix to determine lnprob.
-
     Passes some partial function to the cython routine.
-
     initialized via CovarianceMatrix.__init__(self.DataSpectrum, self.index, max_v=max_v, debug=self.debug)
-
     CovarianceMatrix.update_global(params)
-
     CovarianceMatrix.revert_global()
-
     CovarianceMatrix.get_amp()
-
     CovarianceMatrix.get_region_coverage()
-
     CovarianceMatrix.evaluate(residuals)
-
     CovarianceMatrix.create_region(starting_param_dict, self.priors)
-
     CovMatrix.delete_region(self.region_index)
-
     CovMatrix.revert_region(self.region_index)
-
     CovMatrix.update_region(self.region_index, params)
-
 '''
 
     def __init__(self, DataSpectrum, index):
@@ -1611,7 +1488,6 @@ class DataCovarianceMatrix:
     def update(self, params):
         '''
         Update the covariance matrix using the parameters.
-
         :param params: parameters to update the covariance matrix
         :type params: dict
         '''
